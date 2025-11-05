@@ -106,9 +106,20 @@ eventlite/
 “I confirm that no code or text in this submission was produced by any AI tool (e.g., ChatGPT, Copilot).  
 Any automated generation (e.g., icons or placeholder text) used is explicitly listed with its exact prompt.”
 
-Note: During development, I used **Cursor** only for **UI-related code autocompletions and formatting assistance**.  
+During development, I used Cursor only for UI-related code autocompletions and formatting assistance.  
 All core logic, models, and views were written manually/auto-completion.
 
+## Assumptions Made
+
+- Each user has a single role (Organizer or Attendee) chosen during signup.
+- Only organizers can create and manage events or sessions.
+- Attendees can only bookmark and comment on published events.
+- Bookmarks and notifications are per user and not shared.
+- The app uses SQLite for simplicity in this prototype setup.
+
+## Time Taken
+
+Approx. 34–48 hours including setup, coding, testing, and UI adjustments.
 
 ## Checklist
 -   Functional Django app running with `python manage.py runserver`
