@@ -16,7 +16,8 @@ class EventListView(ListView):
     paginate_by = 10
     
     def get_queryset(self):
-        queryset = Event.objects.select_related('organizer').prefetch_related('sessions')
+        # Optimize queries: select_related for foreign keys, prefetch_related for reverse relations
+        queryset = Event.objects.select_related('organizer').prefetch_related('sessions', 'bookmarks')
         # Search functionality
         search_query = self.request.GET.get('q')
         if search_query:
@@ -29,7 +30,12 @@ class EventDetailView(DetailView):
     context_object_name = 'event'
     
     def get_queryset(self):
-        return Event.objects.select_related('organizer').prefetch_related('sessions', 'comments__author')
+        # Optimize queries: avoid N+1 queries by prefetching related objects
+        return Event.objects.select_related('organizer').prefetch_related(
+            'sessions', 
+            'comments__author',
+            'bookmarks'
+        )
 
 class OrganizerEventListView(OrganizerRequiredMixin, ListView):
     model = Event

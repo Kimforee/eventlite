@@ -31,8 +31,13 @@
                     <strong>Organizer:</strong> {{ event.organizer.username }}
                 </p>
                 <p style="color: #666; margin-bottom: 0.5rem;">
-                    <strong>Starts at:</strong> {{ event.starts_at|date:"F d, Y H:i" }}
+                    <strong>Date:</strong> {{ event.starts_at|date:"F d, Y" }} at {{ event.starts_at|date:"H:i" }}
                 </p>
+                {% if event.sessions.all %}
+                    <p style="color: #666; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                        <strong>{{ event.sessions.count }}</strong> session{{ event.sessions.count|pluralize }}
+                    </p>
+                {% endif %}
                 <p style="color: #666; margin-bottom: 1rem;">
                     {{ event.description|truncatewords:30 }}
                 </p>
@@ -44,21 +49,42 @@
     </div>
 
     <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
     <div style="margin-top: 2rem; text-align: center;">
-        {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
-               style="margin-right: 1rem; color: #2c3e50;">← Previous</a>
-        {% endif %}
-        
-        <span style="margin: 0 1rem;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-        
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
-               style="margin-left: 1rem; color: #2c3e50;">Next →</a>
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+                   style="padding: 0.5rem 1rem; color: #2c3e50; text-decoration: none; border: 1px solid #ddd; border-radius: 4px;">
+                    ← Previous
+                </a>
+            {% endif %}
+            
+            <span style="padding: 0.5rem 1rem; margin: 0 0.5rem;">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+                   style="padding: 0.5rem 1rem; color: #2c3e50; text-decoration: none; border: 1px solid #ddd; border-radius: 4px;">
+                    Next →
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+{% else %}
+    <div style="text-align: center; padding: 3rem; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <p style="color: #666; font-size: 1.1rem; margin-bottom: 1rem;">
+            {% if request.GET.q %}
+                No events found matching "{{ request.GET.q }}".
+            {% else %}
+                No events available yet.
+            {% endif %}
+        </p>
+        {% if request.GET.q %}
+            <a href="{% url 'event_list' %}" style="color: #2c3e50; text-decoration: underline;">View all events</a>
         {% endif %}
     </div>
-{% else %}
-    <p style="color: #666; text-align: center; padding: 2rem;">No events found.</p>
 {% endif %}
 {% endblock %}
 
