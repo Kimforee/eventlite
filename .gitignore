@@ -1,7 +1,11 @@
 # Python
 __pycache__/
+migrations/
 *.py[cod]
 *$py.class
 
 # Virtual Environment
 venv/
+
+*.db.sqlite3
+db.sqlite3

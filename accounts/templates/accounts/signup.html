@@ -1,0 +1,83 @@
+{% extends 'events/base.html' %}
+
+{% block title %}Sign Up - EventLite{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 2rem auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h2 style="margin-bottom: 1.5rem; color: #2c3e50;">Sign Up</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 1rem;">
+            <label for="id_username" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Username:</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div style="color: red; font-size: 0.9rem; margin-top: 0.25rem;">{{ form.username.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label for="id_email" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Email:</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div style="color: red; font-size: 0.9rem; margin-top: 0.25rem;">{{ form.email.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label for="id_password1" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Password:</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <div style="color: red; font-size: 0.9rem; margin-top: 0.25rem;">{{ form.password1.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label for="id_password2" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Confirm Password:</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <div style="color: red; font-size: 0.9rem; margin-top: 0.25rem;">{{ form.password2.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Role:</label>
+            <div style="display: flex; gap: 20px;">
+                {% for choice in form.role %}
+                    <div>
+                        {{ choice.tag }}
+                        <label for="{{ choice.id_for_label }}" style="margin-left: 5px;">{{ choice.choice_label }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if form.role.errors %}
+                <div style="color: red; font-size: 0.9rem; margin-top: 0.25rem;">{{ form.role.errors }}</div>
+            {% endif %}
+        </div>
+
+        <button type="submit" style="width: 100%; padding: 0.75rem; background-color: #2c3e50; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer;">
+            Sign Up
+        </button>
+    </form>
+
+    <p style="margin-top: 1rem; text-align: center;">
+        Already have an account? <a href="{% url 'login' %}" style="color: #2c3e50;">Login here</a>
+    </p>
+</div>
+
+<style>
+    input[type="text"], input[type="email"], input[type="password"] {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+    input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+        outline: none;
+        border-color: #2c3e50;
+    }
+</style>
+{% endblock %}
+

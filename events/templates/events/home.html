@@ -1,0 +1,36 @@
+{% extends 'events/base.html' %}
+
+{% block title %}Home - EventLite{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 3rem 0;">
+    <h1 style="color: #2c3e50; margin-bottom: 1rem;">Welcome to EventLite</h1>
+    <p style="font-size: 1.2rem; color: #666; margin-bottom: 2rem;">
+        Event management platform
+    </p>
+    
+    {% if user.is_authenticated %}
+        <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 600px; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2 style="color: #2c3e50; margin-bottom: 1rem;">Hello, {{ user.username }}!</h2>
+            {% if user.profile %}
+                <p style="margin-bottom: 1rem;">
+                    You are logged in as: <strong>{{ user.profile.get_role_display }}</strong>
+                </p>
+                {% if user.profile.role == 'ORGANIZER' %}
+                    <p style="color: #666;">create and manage events</p>
+                {% else %}
+                    <p style="color: #666;">browse and bookmark events</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% else %}
+        <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 600px; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <p style="margin-bottom: 1.5rem; color: #666;">
+                Please <a href="{% url 'login' %}" style="color: #2c3e50; font-weight: bold;">login</a> or 
+                <a href="{% url 'signup' %}" style="color: #2c3e50; font-weight: bold;">sign up</a> to continue.
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
