@@ -1,0 +1,23 @@
+{% extends 'events/base.html' %}
+
+{% block title %}Delete Event - EventLite{% endblock %}
+
+{% block content %}
+<h1 style="color: #2c3e50; margin-bottom: 1.5rem;">Delete Event</h1>
+
+<p style="margin-bottom: 1.5rem; color: #666;">
+    Are you sure you want to delete the event <strong>"{{ object.title }}"</strong>? 
+    This action cannot be undone.
+</p>
+
+<form method="post" style="display: flex; gap: 1rem;">
+    {% csrf_token %}
+    <button type="submit" style="padding: 0.75rem 1.5rem; background-color: #d32f2f; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        Yes, Delete
+    </button>
+    <a href="{% url 'organizer_events' %}" style="padding: 0.75rem 1.5rem; background-color: #999; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">
+        Cancel
+    </a>
+</form>
+{% endblock %}
+

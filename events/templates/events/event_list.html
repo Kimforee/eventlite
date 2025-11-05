@@ -1,0 +1,64 @@
+{% extends 'events/base.html' %}
+
+{% block title %}All Events - EventLite{% endblock %}
+
+{% block content %}
+<h1 style="color: #2c3e50; margin-bottom: 1.5rem;">All Events</h1>
+
+<!-- Search Form -->
+<form method="get" style="margin-bottom: 2rem;">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search events..." 
+           style="padding: 0.5rem; width: 300px; border: 1px solid #ddd; border-radius: 4px;">
+    <button type="submit" style="padding: 0.5rem 1rem; background-color: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        Search
+    </button>
+    {% if request.GET.q %}
+        <a href="{% url 'event_list' %}" style="margin-left: 10px; color: #2c3e50;">Clear</a>
+    {% endif %}
+</form>
+
+<!-- Events List -->
+{% if events %}
+    <div style="display: grid; gap: 1.5rem;">
+        {% for event in events %}
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h3 style="margin-bottom: 0.5rem;">
+                    <a href="{% url 'event_detail' event.pk %}" style="color: #2c3e50; text-decoration: none;">
+                        {{ event.title }}
+                    </a>
+                </h3>
+                <p style="color: #666; margin-bottom: 0.5rem;">
+                    <strong>Organizer:</strong> {{ event.organizer.username }}
+                </p>
+                <p style="color: #666; margin-bottom: 0.5rem;">
+                    <strong>Starts at:</strong> {{ event.starts_at|date:"F d, Y H:i" }}
+                </p>
+                <p style="color: #666; margin-bottom: 1rem;">
+                    {{ event.description|truncatewords:30 }}
+                </p>
+                <a href="{% url 'event_detail' event.pk %}" style="color: #2c3e50; text-decoration: underline;">
+                    View Details →
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <div style="margin-top: 2rem; text-align: center;">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+               style="margin-right: 1rem; color: #2c3e50;">← Previous</a>
+        {% endif %}
+        
+        <span style="margin: 0 1rem;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+               style="margin-left: 1rem; color: #2c3e50;">Next →</a>
+        {% endif %}
+    </div>
+{% else %}
+    <p style="color: #666; text-align: center; padding: 2rem;">No events found.</p>
+{% endif %}
+{% endblock %}
+

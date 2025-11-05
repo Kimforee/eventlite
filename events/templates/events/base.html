@@ -72,7 +72,14 @@
         </div>
         <div class="navbar-links">
             {% if user.is_authenticated %}
-                <span>Hello, {{ user.username }}!</span>
+                <a href="{% url 'event_list' %}">All Events</a>
+                {% if user.profile %}
+                    {% if user.profile.role == 'ORGANIZER' %}
+                        <a href="{% url 'organizer_events' %}">My Events</a>
+                        <a href="{% url 'event_create' %}">Create Event</a>
+                    {% endif %}
+                {% endif %}
+                <span style="margin-left: 10px;">Hello, {{ user.username }}!</span>
                 {% if user.profile %}
                     {% if user.profile.role == 'ORGANIZER' %}
                         <span style="margin-left: 10px;">(Organizer)</span>

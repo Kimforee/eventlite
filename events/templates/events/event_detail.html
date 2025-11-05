@@ -1,0 +1,56 @@
+{% extends 'events/base.html' %}
+
+{% block title %}{{ event.title }} - EventLite{% endblock %}
+
+{% block content %}
+<div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h1 style="color: #2c3e50; margin-bottom: 1rem;">{{ event.title }}</h1>
+    
+    <p style="color: #666; margin-bottom: 0.5rem;">
+        <strong>Organizer:</strong> {{ event.organizer.username }}
+    </p>
+    <p style="color: #666; margin-bottom: 1rem;">
+        <strong>Starts at:</strong> {{ event.starts_at|date:"F d, Y H:i" }}
+    </p>
+    
+    <div style="margin-top: 1.5rem; margin-bottom: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+        <h3 style="color: #2c3e50; margin-bottom: 0.5rem;">Description</h3>
+        <p style="color: #666; line-height: 1.6;">{{ event.description }}</p>
+    </div>
+
+    {% if user.is_authenticated and user.profile.role == 'ORGANIZER' and event.organizer == user %}
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+            <a href="{% url 'event_update' event.pk %}" style="margin-right: 1rem; color: #2c3e50; text-decoration: underline;">Edit Event</a>
+            <a href="{% url 'event_delete' event.pk %}" style="margin-right: 1rem; color: #d32f2f; text-decoration: underline;">Delete Event</a>
+            <a href="{% url 'session_create' event.pk %}" style="color: #2c3e50; text-decoration: underline;">Add Session</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Sessions Section -->
+<div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2 style="color: #2c3e50; margin-bottom: 1rem;">Sessions</h2>
+    
+    {% if event.sessions.all %}
+        <div style="display: grid; gap: 1rem;">
+            {% for session in event.sessions.all %}
+                <div style="padding: 1rem; background-color: #f9f9f9; border-radius: 4px;">
+                    <h4 style="margin-bottom: 0.5rem; color: #2c3e50;">{{ session.title }}</h4>
+                    <p style="color: #666; margin: 0;">
+                        <strong>Time:</strong> {{ session.starts_at|date:"F d, Y H:i" }} - {{ session.ends_at|date:"H:i" }}
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color: #666;">No sessions scheduled for this event yet.</p>
+    {% endif %}
+</div>
+
+<!-- Comments Section (will be implemented in Part 4) -->
+<div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h2 style="color: #2c3e50; margin-bottom: 1rem;">Comments</h2>
+    <p style="color: #666;">Comments feature will be available in Part 4.</p>
+</div>
+{% endblock %}
+
