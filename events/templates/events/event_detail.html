@@ -21,13 +21,19 @@
         <p style="color: #666; line-height: 1.6;">{{ event.description }}</p>
     </div>
 
-    {% if user.is_authenticated and user.profile.role == 'ORGANIZER' and event.organizer == user %}
-        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee; display: flex; gap: 1rem; align-items: center;">
+        {% if user.is_authenticated and user.profile.role == 'ORGANIZER' and event.organizer == user %}
             <a href="{% url 'event_update' event.pk %}" style="margin-right: 1rem; color: #2c3e50; text-decoration: underline;">Edit Event</a>
             <a href="{% url 'event_delete' event.pk %}" style="margin-right: 1rem; color: #d32f2f; text-decoration: underline;">Delete Event</a>
             <a href="{% url 'session_create' event.pk %}" style="color: #2c3e50; text-decoration: underline;">Add Session</a>
-        </div>
-    {% endif %}
+        {% elif user.is_authenticated and user.profile.role == 'ATTENDEE' %}
+            {% csrf_token %}
+            <button id="bookmark-btn" data-event-id="{{ event.pk }}" 
+                    style="padding: 0.5rem 1rem; background-color: {% if is_bookmarked %}#f39c12{% else %}#95a5a6{% endif %}; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">
+                {% if is_bookmarked %}★ Bookmarked{% else %}☆ Bookmark{% endif %}
+            </button>
+        {% endif %}
+    </div>
 </div>
 
 <!-- Sessions Section -->
@@ -50,10 +56,110 @@
     {% endif %}
 </div>
 
-<!-- Comments Section (will be implemented in Part 4) -->
+<!-- Comments Section -->
 <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
     <h2 style="color: #2c3e50; margin-bottom: 1rem;">Comments</h2>
-    <p style="color: #666;">Comments feature will be available in Part 4.</p>
+    
+    {% if user.is_authenticated and user.profile.role == 'ATTENDEE' %}
+        <form id="comment-form" style="margin-bottom: 2rem;">
+            {% csrf_token %}
+            <textarea id="comment-body" name="body" rows="3" placeholder="Write a comment..." 
+                      style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 0.5rem; font-family: Arial, sans-serif;"></textarea>
+            <button type="submit" style="padding: 0.5rem 1rem; background-color: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Post Comment
+            </button>
+        </form>
+    {% elif not user.is_authenticated %}
+        <p style="color: #666; margin-bottom: 1rem;">Please <a href="{% url 'login' %}">login</a> as an attendee to comment.</p>
+    {% endif %}
+    
+    <div id="comments-list">
+        {% for comment in event.comments.all %}
+            <div class="comment-item" style="padding: 1rem; margin-bottom: 1rem; background-color: #f9f9f9; border-radius: 4px; border-left: 3px solid #2c3e50;">
+                <p style="margin-bottom: 0.5rem; color: #666;">
+                    <strong>{{ comment.author.username }}</strong> 
+                    <span style="font-size: 0.9rem; color: #999;">{{ comment.created_at|date:"F d, Y H:i" }}</span>
+                </p>
+                <p style="color: #333; line-height: 1.5;">{{ comment.body }}</p>
+            </div>
+        {% empty %}
+            <p style="color: #666;">No comments yet. Be the first to comment!</p>
+        {% endfor %}
+    </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Bookmark toggle
+    $('#bookmark-btn').click(function() {
+        var eventId = $(this).data('event-id');
+        var btn = $(this);
+        
+        $.ajax({
+            url: '/events/' + eventId + '/bookmark/',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.bookmarked) {
+                    btn.text('★ Bookmarked').css('background-color', '#f39c12');
+                } else {
+                    btn.text('☆ Bookmark').css('background-color', '#95a5a6');
+                }
+            },
+            error: function(xhr) {
+                alert('Error: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Something went wrong'));
+            }
+        });
+    });
+    
+    // Comment submission
+    $('#comment-form').submit(function(e) {
+        e.preventDefault();
+        var eventId = {{ event.pk }};
+        var body = $('#comment-body').val().trim();
+        
+        if (!body) {
+            alert('Please enter a comment');
+            return;
+        }
+        
+        $.ajax({
+            url: '/events/' + eventId + '/comment/',
+            method: 'POST',
+            data: {
+                'body': body,
+                'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Add new comment to the list
+                    var commentHtml = '<div class="comment-item" style="padding: 1rem; margin-bottom: 1rem; background-color: #f9f9f9; border-radius: 4px; border-left: 3px solid #2c3e50;">' +
+                        '<p style="margin-bottom: 0.5rem; color: #666;">' +
+                        '<strong>' + response.comment.author + '</strong> ' +
+                        '<span style="font-size: 0.9rem; color: #999;">' + response.comment.created_at + '</span>' +
+                        '</p>' +
+                        '<p style="color: #333; line-height: 1.5;">' + response.comment.body + '</p>' +
+                        '</div>';
+                    
+                    if ($('#comments-list').find('p').length > 0 && $('#comments-list').find('p').text().includes('No comments')) {
+                        $('#comments-list').html(commentHtml);
+                    } else {
+                        $('#comments-list').prepend(commentHtml);
+                    }
+                    
+                    // Clear form
+                    $('#comment-body').val('');
+                }
+            },
+            error: function(xhr) {
+                alert('Error: ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Something went wrong'));
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
 

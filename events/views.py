@@ -2,7 +2,10 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import TemplateView, ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Event, Session
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from .models import Event, Session, Bookmark, Comment, Notification
 from .forms import EventForm, SessionForm
 from .mixins import OrganizerRequiredMixin
 
@@ -36,6 +39,18 @@ class EventDetailView(DetailView):
             'comments__author',
             'bookmarks'
         )
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Check if current user has bookmarked this event
+        if self.request.user.is_authenticated:
+            context['is_bookmarked'] = Bookmark.objects.filter(
+                user=self.request.user, 
+                event=self.object
+            ).exists()
+        else:
+            context['is_bookmarked'] = False
+        return context
 
 class OrganizerEventListView(OrganizerRequiredMixin, ListView):
     model = Event
@@ -91,4 +106,63 @@ class SessionCreateView(OrganizerRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['event'] = self.get_event()
         return context
+
+@login_required
+@require_http_methods(["POST"])
+def toggle_bookmark(request, event_id):
+    """Toggle bookmark for an event (AJAX)"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    
+    # Check if user is attendee
+    if not hasattr(request.user, 'profile') or request.user.profile.role != 'ATTENDEE':
+        return JsonResponse({'error': 'Only attendees can bookmark events'}, status=403)
+    
+    event = get_object_or_404(Event, pk=event_id)
+    bookmark, created = Bookmark.objects.get_or_create(user=request.user, event=event)
+    
+    if created:
+        # Bookmark was created
+        return JsonResponse({'bookmarked': True, 'message': 'Event bookmarked'})
+    else:
+        # Bookmark already exists, remove it
+        bookmark.delete()
+        return JsonResponse({'bookmarked': False, 'message': 'Bookmark removed'})
+
+@login_required
+@require_http_methods(["POST"])
+def add_comment(request, event_id):
+    """Add a comment to an event (AJAX)"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    
+    # Check if user is attendee
+    if not hasattr(request.user, 'profile') or request.user.profile.role != 'ATTENDEE':
+        return JsonResponse({'error': 'Only attendees can comment'}, status=403)
+    
+    event = get_object_or_404(Event, pk=event_id)
+    body = request.POST.get('body', '').strip()
+    
+    if not body:
+        return JsonResponse({'error': 'Comment body is required'}, status=400)
+    
+    # Create comment
+    comment = Comment.objects.create(event=event, author=request.user, body=body)
+    
+    # Create notification for event organizer
+    Notification.objects.create(
+        user=event.organizer,
+        message=f"{request.user.username} commented on your event: {event.title}"
+    )
+    
+    # Return comment data
+    return JsonResponse({
+        'success': True,
+        'comment': {
+            'id': comment.id,
+            'body': comment.body,
+            'author': comment.author.username,
+            'created_at': comment.created_at.strftime('%B %d, %Y at %H:%M')
+        }
+    })
 

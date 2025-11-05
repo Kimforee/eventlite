@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     HomeView, EventListView, EventDetailView, 
     OrganizerEventListView, EventCreateView, EventUpdateView, 
-    EventDeleteView, SessionCreateView
+    EventDeleteView, SessionCreateView, toggle_bookmark, add_comment
 )
 
 urlpatterns = [
@@ -14,5 +14,8 @@ urlpatterns = [
     path('organizer/events/<int:pk>/edit/', EventUpdateView.as_view(), name='event_update'),
     path('organizer/events/<int:pk>/delete/', EventDeleteView.as_view(), name='event_delete'),
     path('organizer/events/<int:event_id>/sessions/create/', SessionCreateView.as_view(), name='session_create'),
+    # AJAX views
+    path('events/<int:event_id>/bookmark/', toggle_bookmark, name='toggle_bookmark'),
+    path('events/<int:event_id>/comment/', add_comment, name='add_comment'),
 ]
 

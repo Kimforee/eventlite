@@ -77,6 +77,15 @@
                     {% if user.profile.role == 'ORGANIZER' %}
                         <a href="{% url 'organizer_events' %}">My Events</a>
                         <a href="{% url 'event_create' %}">Create Event</a>
+                        {% if unread_notifications_count > 0 %}
+                            <span style="margin-left: 10px; background-color: #e74c3c; padding: 2px 8px; border-radius: 10px; font-size: 0.9rem;">
+                                Notifications ({{ unread_notifications_count }})
+                            </span>
+                        {% endif %}
+                    {% else %}
+                        {% if my_bookmarks_count > 0 %}
+                            <span style="margin-left: 10px;">★ {{ my_bookmarks_count }}</span>
+                        {% endif %}
                     {% endif %}
                 {% endif %}
                 <span style="margin-left: 10px;">Hello, {{ user.username }}!</span>
